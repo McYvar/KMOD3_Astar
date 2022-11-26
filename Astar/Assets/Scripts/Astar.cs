@@ -20,7 +20,6 @@ public class Astar
         Node current;
         List<Node> openSet = new List<Node>();
         List<Node> closedSet = new List<Node>();
-        List<Vector2Int> path = new List<Vector2Int>();
 
         Node startNode = new Node(startPos, null, 0, Vector2Int.Distance(startPos, endPos));
         Node targetNode = new Node(endPos, null, Vector2Int.Distance(startPos, endPos), 0);
@@ -28,23 +27,42 @@ public class Astar
 
         while(openSet.Count > 0)
         {
-            loops++;
             current = GetLowestF(openSet);
-            path.Add(current.position);
-
-            if (current.Compare(targetNode))
-            {
-                return path;
-            }
 
             openSet.Remove(current);
             closedSet.Add(current);
 
+            if (current.Compare(targetNode))
+            {
+                List<Vector2Int> path = new List<Vector2Int>();
 
+                path = GeneratePathFromParent(current, path);
+
+                Debug.Log("Loops: " + loops);
+                return path;
+            }
+
+            foreach(var neighbour in GetAvailableNeighbourNodes(current, grid, endPos)) {
+                if (neighbour.Contains(closedSet)) continue;
+
+                if (!neighbour.Contains(openSet) || neighbour.GScore < current.GScore)
+                {
+                    neighbour.parent = current;
+                    if (!neighbour.Contains(openSet)) openSet.Add(neighbour);
+                }
+            }
+            loops++;
         }
 
-        Debug.Log("Loops: " + loops);
         return null;
+    }
+
+    // Gekke recursive functie btw :))))))
+    private List<Vector2Int> GeneratePathFromParent(Node startNode, List<Vector2Int> path)
+    {
+        if (startNode.parent != null) GeneratePathFromParent(startNode.parent, path);
+        path.Add(startNode.position);
+        return path;
     }
 
     private Node GetLowestF(List<Node> set)
@@ -62,6 +80,14 @@ public class Astar
     {
         List<Node> neighbours = new List<Node>();
         Cell currentCell = new Cell();
+        foreach(Cell cell in grid)
+        {
+            if (selected.position == cell.gridPosition)
+            {
+                currentCell = cell;
+                break;
+            }
+        }
         currentCell.gridPosition = selected.position;
         foreach(Cell cell in currentCell.GetNeighbours(grid))
         {
@@ -112,6 +138,15 @@ public class Astar
         public bool Compare(Node other)
         {
             return (position.x == other.position.x && position.y == other.position.y);
+        }
+
+        public bool Contains(List<Node> set)
+        {
+            foreach (Node node in set)
+            {
+                if (node.Compare(this)) return true;
+            }
+            return false;
         }
     }
 }
