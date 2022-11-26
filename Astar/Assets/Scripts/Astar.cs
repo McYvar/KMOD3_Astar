@@ -22,8 +22,8 @@ public class Astar
         List<Node> closedSet = new List<Node>();
         List<Vector2Int> path = new List<Vector2Int>();
 
-        Node startNode = new Node(startPos, null, 0, (int) Vector2Int.Distance(startPos, endPos));
-        Node targetNode = new Node(endPos, null, (int) Vector2Int.Distance(startPos, endPos), 0);
+        Node startNode = new Node(startPos, null, 0, Vector2Int.Distance(startPos, endPos));
+        Node targetNode = new Node(endPos, null, Vector2Int.Distance(startPos, endPos), 0);
         openSet.Add(startNode);
 
         while(openSet.Count > 0)
@@ -58,10 +58,31 @@ public class Astar
         return lowestNode;
     }
 
-    private List<Node> GetAvailableNeighbourNodes(Node selected)
+    private List<Node> GetAvailableNeighbourNodes(Node selected, Cell[,] grid, Vector2Int endPos)
     {
         List<Node> neighbours = new List<Node>();
-
+        Cell currentCell = new Cell();
+        currentCell.gridPosition = selected.position;
+        foreach(Cell cell in currentCell.GetNeighbours(grid))
+        {
+            if (cell.gridPosition.x < currentCell.gridPosition.x)
+            {
+                if (cell.HasWall(Wall.RIGHT) || currentCell.HasWall(Wall.LEFT)) continue;
+            }
+            if (cell.gridPosition.x > currentCell.gridPosition.x)
+            {
+                if (cell.HasWall(Wall.LEFT) || currentCell.HasWall(Wall.RIGHT)) continue;
+            }
+            if (cell.gridPosition.y < currentCell.gridPosition.y)
+            {
+                if (cell.HasWall(Wall.UP) || currentCell.HasWall(Wall.DOWN)) continue;
+            }
+            if (cell.gridPosition.y > currentCell.gridPosition.y)
+            {
+                if (cell.HasWall(Wall.DOWN) || currentCell.HasWall(Wall.UP)) continue;
+            }
+            neighbours.Add(new Node(cell.gridPosition, null, selected.GScore + 1, Vector2Int.Distance(cell.gridPosition, endPos)));
+        }
         return neighbours;
     }
 
@@ -80,7 +101,7 @@ public class Astar
         public float HScore; //Distance estimated based on Heuristic
 
         public Node() { }
-        public Node(Vector2Int position, Node parent, int GScore, int HScore)
+        public Node(Vector2Int position, Node parent, float GScore, float HScore)
         {
             this.position = position;
             this.parent = parent;
