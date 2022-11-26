@@ -16,7 +16,53 @@ public class Astar
     /// <returns></returns>
     public List<Vector2Int> FindPathToTarget(Vector2Int startPos, Vector2Int endPos, Cell[,] grid)
     {
+        int loops = 0;
+        Node current;
+        List<Node> openSet = new List<Node>();
+        List<Node> closedSet = new List<Node>();
+        List<Vector2Int> path = new List<Vector2Int>();
+
+        Node startNode = new Node(startPos, null, 0, (int) Vector2Int.Distance(startPos, endPos));
+        Node targetNode = new Node(endPos, null, (int) Vector2Int.Distance(startPos, endPos), 0);
+        openSet.Add(startNode);
+
+        while(openSet.Count > 0)
+        {
+            loops++;
+            current = GetLowestF(openSet);
+            path.Add(current.position);
+
+            if (current.Compare(targetNode))
+            {
+                return path;
+            }
+
+            openSet.Remove(current);
+            closedSet.Add(current);
+
+
+        }
+
+        Debug.Log("Loops: " + loops);
         return null;
+    }
+
+    private Node GetLowestF(List<Node> set)
+    {
+        Node lowestNode = set[0];
+        foreach(Node node in set)
+        {
+            if (node.FScore < lowestNode.FScore)
+                lowestNode = node;
+        }
+        return lowestNode;
+    }
+
+    private List<Node> GetAvailableNeighbourNodes(Node selected)
+    {
+        List<Node> neighbours = new List<Node>();
+
+        return neighbours;
     }
 
     /// <summary>
@@ -40,6 +86,11 @@ public class Astar
             this.parent = parent;
             this.GScore = GScore;
             this.HScore = HScore;
+        }
+
+        public bool Compare(Node other)
+        {
+            return (position.x == other.position.x && position.y == other.position.y);
         }
     }
 }
